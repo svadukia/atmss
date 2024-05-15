@@ -4,6 +4,5 @@ dash-html-components==2.0.0
 dash-table==5.0.0
 pandas==1.5.3
 asyncio==3.4.3
-threading==0.1.0
 dhanhq==1.0.0
 NumPy==1.24.1
