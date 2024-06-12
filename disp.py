@@ -20,11 +20,11 @@ current_date = datetime.now().strftime('%Y-%m-%d')
 
 # Product and expiry details
 pr = "NATURALGAS"
-ex = "24 MAY"
+ex = "21 JUN"
 c_pr = "CRUDEOIL"
-c_ex = "16 MAY"
+c_ex = "14 JUN"
 g_pr = "GOLD"
-g_ex = "27 MAY"
+g_ex = "25 JUL"
 s_pr = "SILVER"
 s_ex = "26 JUN"
 
@@ -164,19 +164,19 @@ async def on_message(instance, message):
             ltp = float(data.get('LTP', '0.0'))
             ltp_dict[security_id] = ltp
 
-            if security_id == 428648:
+            if security_id == 428649:
                 strikes = get_atm_ng(ltp)
                 ng_sym, ng_df = get_token(strikes)
                 await custom_subscribe_symbols(instance, marketfeed.Ticker, ng_sym)
                 get_atm_sum(ng_sym, ng_df, pr)
 
-            if security_id == 426262:
+            if security_id == 427034:
                 strikes = get_atm_crude(ltp)
                 cr_sym, cr_df = get_token(strikes)
                 await custom_subscribe_symbols(instance, marketfeed.Ticker, cr_sym)
                 get_atm_sum(cr_sym, cr_df, c_pr)
 
-            if security_id == 257896:
+            if security_id == 426266:
                 strikes = get_atm_gold(ltp)
                 go_sym, go_df = get_token(strikes)
                 await custom_subscribe_symbols(instance, marketfeed.Ticker, go_sym)
@@ -192,13 +192,13 @@ async def on_message(instance, message):
 
 # Main function to run the feed
 async def main_feed():
-    access_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzE2NTcwOTYwLCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiMTI3LjAuMC4xIiwiZGhhbkNsaWVudElkIjoiMTEwMzAyNzcxNSJ9.eRfI1nj8QYjj-2O_aMquvQ8HKrBpTHLn4_FlVPXEm0kPV5mtJxzORvIJQk4HXzIQHQSYy6PyVbT0PBQBd2u5Ow'
+    access_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzIwNjg0NzU3LCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiIiwiZGhhbkNsaWVudElkIjoiMTEwMzAyNzcxNSJ9.IaPsFUjWY5JWG_S9KLv3KvZMgXtUwiEd4YstrTb3uy3W77qvkM5chIR0QcMuG2vTZ7aQ0n5cb6ASG_VC8gB08Q'
     if not access_token:
         logging.error("Failed to read access token. Exiting.")
         return
 
     client_id = '1103027715'
-    instruments = [(5, '258633'), (5, '426262'), (5, '428648'), (5, '257896')]
+    instruments = [(5, '258633'), (5, '426266'), (5, '428649'), (5, '427034')]
     subscription_code = marketfeed.Ticker
 
     feed = marketfeed.DhanFeed(client_id, access_token, instruments, subscription_code,
