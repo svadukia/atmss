@@ -167,18 +167,18 @@ async def on_message(instance, message):
                 await custom_subscribe_symbols(instance, marketfeed.Ticker, ng_sym)
                 get_atm_sum(ng_sym, ng_df, pr)
 
-            if security_id == 427034:
+            elif security_id == 427034:
                 strikes = get_atm_crude(ltp)
                 cr_sym, cr_df = get_token(strikes)
                 await custom_subscribe_symbols(instance, marketfeed.Ticker, cr_sym)
                 get_atm_sum(cr_sym, cr_df, c_pr)
 
-            if security_id == 426266:
+            elif security_id == 426266:
                 strikes = get_atm_gold(ltp)
                 go_sym, go_df = get_token(strikes)
                 await custom_subscribe_symbols(instance, marketfeed.Ticker, go_sym)
                 get_atm_sum(go_sym, go_df, g_pr)
-            if security_id == 258633:
+            elif security_id == 258633:
                 strikes = get_atm_silver(ltp)
                 sl_sym, sl_df = get_token(strikes)
                 await custom_subscribe_symbols(instance, marketfeed.Ticker, sl_sym)
