@@ -236,7 +236,7 @@ feed_thread.start()
 # Dash app setup
 app = dash.Dash(__name__)
 app.layout = html.Div([
-    html.H1("Commodity ATM Data"),
+    html.H1("ATM Data"),
     dash_table.DataTable(
         id='atm-table',
         columns=[
@@ -245,16 +245,33 @@ app.layout = html.Div([
             {'name': 'CE LTP', 'id': 'ce_ltp'},
             {'name': 'PE LTP', 'id': 'pe_ltp'},
             {'name': 'Sum', 'id': 'sum'}
-        ],
+        ], 
         style_table={'overflowX': 'auto'},
-        style_cell={'textAlign': 'center'}
+        style_cell={'textAlign': 'center', 'fontFamily': 'Arial, sans-serif', 'fontSize': '16px'},
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': '#f9f9f9'
+            },
+            {
+                'if': {'row_index': 'even'},
+                'backgroundColor': '#ffffff'
+            }
+        ],
+        style_header={
+            'backgroundColor': '#4CAF50',
+            'color': 'white',
+            'fontWeight': 'bold',
+            'fontSize': '18px'
+        },
+        style_as_list_view=True
     ),
     dcc.Interval(
         id='interval-component',
         interval=1*1000,  # Update every second
         n_intervals=0
     )
-])
+], style={'maxWidth': '1000px', 'margin': '0 auto'})
 
 @app.callback(
     Output('atm-table', 'data'),
