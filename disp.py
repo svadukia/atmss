@@ -190,6 +190,25 @@ async def on_message(instance, message):
     except Exception as e:
         logging.error(f"Error in on_message: {e}")
 
+async def connect_to_feed(feed):
+    """
+    Attempt to connect to the feed and handle reconnections on disconnections.
+    """
+    attempt_count = 0
+    while not shutdown_event.is_set():
+        try:
+            await feed.connect()
+            logging.info("Connected to the WebSocket feed.")
+            # Handle incoming messages
+             # You might need to implement this based on your actual WebSocket library
+            attempt_count = 0  # Reset attempts after a successful connection
+        except Exception as e:
+            logging.error(f"Connection failed: {e}")
+            attempt_count += 1
+            wait_time = min(30, 2 ** attempt_count)  # Exponential backoff capped at 30 seconds
+            logging.info(f"Reconnecting in {wait_time} seconds...")
+            await asyncio.sleep(wait_time)
+
 # Main function to run the feed
 async def main_feed():
     access_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzIwNjg0NzU3LCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiIiwiZGhhbkNsaWVudElkIjoiMTEwMzAyNzcxNSJ9.IaPsFUjWY5JWG_S9KLv3KvZMgXtUwiEd4YstrTb3uy3W77qvkM5chIR0QcMuG2vTZ7aQ0n5cb6ASG_VC8gB08Q'
@@ -203,7 +222,10 @@ async def main_feed():
 
     feed = marketfeed.DhanFeed(client_id, access_token, instruments, subscription_code,
                                on_connect=on_connect, on_message=on_message, on_close=on_close)
-    await feed.connect()
+    await connect_to_feed(feed)
+
+# Handle graceful shutdown
+shutdown_event = threading.Event()
 
 # Run feed in a separate thread
 def run_feed_in_background(loop):
