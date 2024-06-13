@@ -28,14 +28,14 @@ g_ex = "25 JUL"
 s_pr = "SILVER"
 s_ex = "26 JUN"
 
-# # Read access token from a file
-# def read_access_token(filepath):
-#     try:
-#         with open(filepath, "r") as f:
-#             return f.read().strip()
-#     except FileNotFoundError:
-#         logging.error(f"File not found: {filepath}")
-#         return None
+# Read access token from a file
+def read_access_token(filepath):
+    try:
+        with open(filepath, "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        logging.error(f"File not found: {filepath}")
+        return None
 
 # Custom method to handle the subscription process correctly
 async def custom_subscribe_symbols(feed, feed_request_code, new_symbols):
@@ -108,6 +108,7 @@ def get_token(strikes):
         url = 'https://raw.githubusercontent.com/svadukia/atmss/main/api-scrip-master.csv'
 
         sym_df = pd.read_csv(url, low_memory=False)
+        
         filtered_df = sym_df[sym_df['SEM_CUSTOM_SYMBOL'].isin(strikes) & (sym_df['SEM_EXM_EXCH_ID'] == 'MCX')]
         tokens = filtered_df['SEM_SMST_SECURITY_ID'].tolist()
         ng_for = [(5, str(token)) for token in tokens]
@@ -181,7 +182,6 @@ async def on_message(instance, message):
                 go_sym, go_df = get_token(strikes)
                 await custom_subscribe_symbols(instance, marketfeed.Ticker, go_sym)
                 get_atm_sum(go_sym, go_df, g_pr)
-
             if security_id == 258633:
                 strikes = get_atm_silver(ltp)
                 sl_sym, sl_df = get_token(strikes)
@@ -198,7 +198,7 @@ async def main_feed():
         return
 
     client_id = '1103027715'
-    instruments = [(5, '258633'), (5, '426266'), (5, '428649'), (5, '427034')]
+    instruments = [(5, '258633'), (5, '426266'), (5, '428649'),(5,'427034')]
     subscription_code = marketfeed.Ticker
 
     feed = marketfeed.DhanFeed(client_id, access_token, instruments, subscription_code,
@@ -265,4 +265,4 @@ def update_table(n):
     return table_data
 
 if __name__ == '__main__':
-    app.run_server(debug=True,host='54.174.162.103',port=8058)
+    app.run_server(debug=True,host= '0.0.0.0', port=8058)
