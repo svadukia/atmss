@@ -126,28 +126,24 @@ def get_atm_sum(symbols, mdf, name):
     global latest_sums
 
     total_ltp = 0.0
-    sums = {}
-    if 'name' not in latest_sums:
-            latest_sums['name'] = {}
-    if name not in latest_sums['name']:
-        latest_sums['name'][name] = {'strike': {}, 'total': 0.0, 'time': ''}
+    with latest_sums_lock:
+        latest_sums[name] = {'strike': {}, 'total': 0.0, 'time': ''}
 
-    for _, row in mdf.iterrows():
-        token = row['Token']
-        strike = row['Strike']
-        option_type = row['type']
+        for _, row in mdf.iterrows():
+            token = row['Token']
+            strike = row['Strike']
+            option_type = row['type']
 
-        if strike not in latest_sums['name'][name]['strike']:
-            latest_sums['name'][name]['strike'][strike] = {}
+            if token in ltp_dict:
+                if strike not in latest_sums[name]['strike']:
+                    latest_sums[name]['strike'][strike] = {}
+                latest_sums[name]['strike'][strike][option_type] = ltp_dict[token]
+                total_ltp += ltp_dict[token]
 
-        if token in ltp_dict:
-            latest_sums['name'][name]['strike'][strike][option_type] = ltp_dict[token]
-            total_ltp += ltp_dict[token]
+        latest_sums[name]['total'] = round(total_ltp, 2)
+        latest_sums[name]['time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    latest_sums['name'][name]['total'] = round(total_ltp, 2)
-    latest_sums['name'][name]['time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    logging.info(f"Updated latest sums for {name}: {latest_sums['name'][name]}")
+    logging.info(f"Updated latest sums for {name}: {latest_sums[name]}")
 
     return total_ltp
 
@@ -266,12 +262,10 @@ app.layout = html.Div([
 )
 def update_table(n):
     global latest_sums
-    
-    na = latest_sums
-    print(na)
+
     table_data = []
     with latest_sums_lock:
-        for commodity, details in latest_sums.get('name', {}).items():
+        for commodity, details in latest_sums.items():
             strikes = details.get('strike', {})
             total = details.get('total', 'N/A')
             for strike, values in strikes.items():
