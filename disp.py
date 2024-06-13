@@ -236,7 +236,7 @@ feed_thread.start()
 # Dash app setup
 app = dash.Dash(__name__)
 app.layout = html.Div([
-    html.H1("ATM Data"),
+    html.H1("ATM Sum", style={'textAlign': 'center', 'color': '#4CAF50'}),
     dash_table.DataTable(
         id='atm-table',
         columns=[
