@@ -212,7 +212,7 @@ async def connect_to_feed(feed):
 
 # Main function to run the feed
 async def main_feed():
-    access_token = read_access_token("D://Dhan/accesstoken.txt")
+    access_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzIwNjg0NzU3LCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiIiwiZGhhbkNsaWVudElkIjoiMTEwMzAyNzcxNSJ9.IaPsFUjWY5JWG_S9KLv3KvZMgXtUwiEd4YstrTb3uy3W77qvkM5chIR0QcMuG2vTZ7aQ0n5cb6ASG_VC8gB08Q'
     if not access_token:
         logging.error("Failed to read access token. Exiting.")
         return
