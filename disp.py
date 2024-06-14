@@ -105,7 +105,9 @@ def get_atm_silver(price):
 # Function to get token list from CSV
 def get_token(strikes):
     try:
-        sym_df = pd.read_csv('D:/Dhan/api-scrip-master.csv', low_memory=False)
+        url = 'https://raw.githubusercontent.com/svadukia/atmss/main/api-scrip-master.csv'
+
+        sym_df = pd.read_csv(url, low_memory=False)
         filtered_df = sym_df[sym_df['SEM_CUSTOM_SYMBOL'].isin(strikes) & (sym_df['SEM_EXM_EXCH_ID'] == 'MCX')]
         tokens = filtered_df['SEM_SMST_SECURITY_ID'].tolist()
         ng_for = [(5, str(token)) for token in tokens]
