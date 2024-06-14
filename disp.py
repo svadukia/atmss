@@ -105,10 +105,7 @@ def get_atm_silver(price):
 # Function to get token list from CSV
 def get_token(strikes):
     try:
-        url = 'https://raw.githubusercontent.com/svadukia/atmss/main/api-scrip-master.csv'
-
-        sym_df = pd.read_csv(url, low_memory=False)
-        
+        sym_df = pd.read_csv('D:/Dhan/api-scrip-master.csv', low_memory=False)
         filtered_df = sym_df[sym_df['SEM_CUSTOM_SYMBOL'].isin(strikes) & (sym_df['SEM_EXM_EXCH_ID'] == 'MCX')]
         tokens = filtered_df['SEM_SMST_SECURITY_ID'].tolist()
         ng_for = [(5, str(token)) for token in tokens]
@@ -147,6 +144,31 @@ def get_atm_sum(symbols, mdf, name):
 
     return total_ltp
 
+async def handle_security(instance, security_id, ltp):
+    if security_id == 428649:
+        strikes = get_atm_ng(ltp)
+        ng_sym, ng_df = get_token(strikes)
+        await custom_subscribe_symbols(instance, marketfeed.Ticker, ng_sym)
+        get_atm_sum(ng_sym, ng_df, pr)
+
+    elif security_id == 427034:
+        strikes = get_atm_crude(ltp)
+        cr_sym, cr_df = get_token(strikes)
+        await custom_subscribe_symbols(instance, marketfeed.Ticker, cr_sym)
+        get_atm_sum(cr_sym, cr_df, c_pr)
+
+    elif security_id == 426266:
+        strikes = get_atm_gold(ltp)
+        go_sym, go_df = get_token(strikes)
+        await custom_subscribe_symbols(instance, marketfeed.Ticker, go_sym)
+        get_atm_sum(go_sym, go_df, g_pr)
+
+    elif security_id == 258633:
+        strikes = get_atm_silver(ltp)
+        sl_sym, sl_df = get_token(strikes)
+        await custom_subscribe_symbols(instance, marketfeed.Ticker, sl_sym)
+        get_atm_sum(sl_sym, sl_df, s_pr)
+
 # Async function to handle incoming messages
 async def on_message(instance, message):
     try:
@@ -161,28 +183,12 @@ async def on_message(instance, message):
             ltp = float(data.get('LTP', '0.0'))
             ltp_dict[security_id] = ltp
 
-            if security_id == 428649:
-                strikes = get_atm_ng(ltp)
-                ng_sym, ng_df = get_token(strikes)
-                await custom_subscribe_symbols(instance, marketfeed.Ticker, ng_sym)
-                get_atm_sum(ng_sym, ng_df, pr)
-
-            elif security_id == 427034:
-                strikes = get_atm_crude(ltp)
-                cr_sym, cr_df = get_token(strikes)
-                await custom_subscribe_symbols(instance, marketfeed.Ticker, cr_sym)
-                get_atm_sum(cr_sym, cr_df, c_pr)
-
-            elif security_id == 426266:
-                strikes = get_atm_gold(ltp)
-                go_sym, go_df = get_token(strikes)
-                await custom_subscribe_symbols(instance, marketfeed.Ticker, go_sym)
-                get_atm_sum(go_sym, go_df, g_pr)
-            elif security_id == 258633:
-                strikes = get_atm_silver(ltp)
-                sl_sym, sl_df = get_token(strikes)
-                await custom_subscribe_symbols(instance, marketfeed.Ticker, sl_sym)
-                get_atm_sum(sl_sym, sl_df, s_pr)
+            await asyncio.gather(
+                handle_security(instance, 428649, ltp_dict.get(428649, 0)),
+                handle_security(instance, 427034, ltp_dict.get(427034, 0)),
+                handle_security(instance, 426266, ltp_dict.get(426266, 0)),
+                handle_security(instance, 258633, ltp_dict.get(258633, 0))
+            )
     except Exception as e:
         logging.error(f"Error in on_message: {e}")
 
@@ -196,7 +202,6 @@ async def connect_to_feed(feed):
             await feed.connect()
             logging.info("Connected to the WebSocket feed.")
             # Handle incoming messages
-             # You might need to implement this based on your actual WebSocket library
             attempt_count = 0  # Reset attempts after a successful connection
         except Exception as e:
             logging.error(f"Connection failed: {e}")
@@ -207,13 +212,13 @@ async def connect_to_feed(feed):
 
 # Main function to run the feed
 async def main_feed():
-    access_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzIwNjg0NzU3LCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiIiwiZGhhbkNsaWVudElkIjoiMTEwMzAyNzcxNSJ9.IaPsFUjWY5JWG_S9KLv3KvZMgXtUwiEd4YstrTb3uy3W77qvkM5chIR0QcMuG2vTZ7aQ0n5cb6ASG_VC8gB08Q'
+    access_token = read_access_token("D://Dhan/accesstoken.txt")
     if not access_token:
         logging.error("Failed to read access token. Exiting.")
         return
 
     client_id = '1103027715'
-    instruments = [(5, '258633'), (5, '426266'), (5, '428649'),(5,'427034')]
+    instruments = [(5, '258633'), (5, '426266'), (5, '428649'), (5, '427034')]
     subscription_code = marketfeed.Ticker
 
     feed = marketfeed.DhanFeed(client_id, access_token, instruments, subscription_code,
@@ -245,7 +250,7 @@ app.layout = html.Div([
             {'name': 'CE LTP', 'id': 'ce_ltp'},
             {'name': 'PE LTP', 'id': 'pe_ltp'},
             {'name': 'Sum', 'id': 'sum'}
-        ], 
+        ],
         style_table={'overflowX': 'auto'},
         style_cell={'textAlign': 'center', 'fontFamily': 'Arial, sans-serif', 'fontSize': '16px'},
         style_data_conditional=[
