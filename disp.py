@@ -9,6 +9,7 @@ import dash
 from dash import dcc, html, dash_table
 from dash.dependencies import Input, Output
 
+
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -22,7 +23,7 @@ current_date = datetime.now().strftime('%Y-%m-%d')
 pr = "NATURALGAS"
 ex = "21 JUN"
 c_pr = "CRUDEOIL"
-c_ex = "14 JUN"
+c_ex = "17 JUL"
 g_pr = "GOLD"
 g_ex = "25 JUL"
 s_pr = "SILVER"
@@ -108,6 +109,7 @@ def get_token(strikes):
         url = 'https://raw.githubusercontent.com/svadukia/atmss/main/api-scrip-master.csv'
 
         sym_df = pd.read_csv(url, low_memory=False)
+        
         filtered_df = sym_df[sym_df['SEM_CUSTOM_SYMBOL'].isin(strikes) & (sym_df['SEM_EXM_EXCH_ID'] == 'MCX')]
         tokens = filtered_df['SEM_SMST_SECURITY_ID'].tolist()
         ng_for = [(5, str(token)) for token in tokens]
@@ -146,31 +148,6 @@ def get_atm_sum(symbols, mdf, name):
 
     return total_ltp
 
-async def handle_security(instance, security_id, ltp):
-    if security_id == 428649:
-        strikes = get_atm_ng(ltp)
-        ng_sym, ng_df = get_token(strikes)
-        await custom_subscribe_symbols(instance, marketfeed.Ticker, ng_sym)
-        get_atm_sum(ng_sym, ng_df, pr)
-
-    elif security_id == 427034:
-        strikes = get_atm_crude(ltp)
-        cr_sym, cr_df = get_token(strikes)
-        await custom_subscribe_symbols(instance, marketfeed.Ticker, cr_sym)
-        get_atm_sum(cr_sym, cr_df, c_pr)
-
-    elif security_id == 426266:
-        strikes = get_atm_gold(ltp)
-        go_sym, go_df = get_token(strikes)
-        await custom_subscribe_symbols(instance, marketfeed.Ticker, go_sym)
-        get_atm_sum(go_sym, go_df, g_pr)
-
-    elif security_id == 258633:
-        strikes = get_atm_silver(ltp)
-        sl_sym, sl_df = get_token(strikes)
-        await custom_subscribe_symbols(instance, marketfeed.Ticker, sl_sym)
-        get_atm_sum(sl_sym, sl_df, s_pr)
-
 # Async function to handle incoming messages
 async def on_message(instance, message):
     try:
@@ -185,12 +162,28 @@ async def on_message(instance, message):
             ltp = float(data.get('LTP', '0.0'))
             ltp_dict[security_id] = ltp
 
-            await asyncio.gather(
-                handle_security(instance, 428649, ltp_dict.get(428649, 0)),
-                handle_security(instance, 427034, ltp_dict.get(427034, 0)),
-                handle_security(instance, 426266, ltp_dict.get(426266, 0)),
-                handle_security(instance, 258633, ltp_dict.get(258633, 0))
-            )
+            if security_id == 428649:
+                strikes = get_atm_ng(ltp)
+                ng_sym, ng_df = get_token(strikes)
+                await custom_subscribe_symbols(instance, marketfeed.Ticker, ng_sym)
+                get_atm_sum(ng_sym, ng_df, pr)
+
+            if security_id == 428008:
+                strikes = get_atm_crude(ltp)
+                cr_sym, cr_df = get_token(strikes)
+                await custom_subscribe_symbols(instance, marketfeed.Ticker, cr_sym)
+                get_atm_sum(cr_sym, cr_df, c_pr)
+
+            if security_id == 426266:
+                strikes = get_atm_gold(ltp)
+                go_sym, go_df = get_token(strikes)
+                await custom_subscribe_symbols(instance, marketfeed.Ticker, go_sym)
+                get_atm_sum(go_sym, go_df, g_pr)
+            if security_id == 258633:
+                strikes = get_atm_silver(ltp)
+                sl_sym, sl_df = get_token(strikes)
+                await custom_subscribe_symbols(instance, marketfeed.Ticker, sl_sym)
+                get_atm_sum(sl_sym, sl_df, s_pr)
     except Exception as e:
         logging.error(f"Error in on_message: {e}")
 
@@ -204,6 +197,7 @@ async def connect_to_feed(feed):
             await feed.connect()
             logging.info("Connected to the WebSocket feed.")
             # Handle incoming messages
+             # You might need to implement this based on your actual WebSocket library
             attempt_count = 0  # Reset attempts after a successful connection
         except Exception as e:
             logging.error(f"Connection failed: {e}")
@@ -220,7 +214,7 @@ async def main_feed():
         return
 
     client_id = '1103027715'
-    instruments = [(5, '258633'), (5, '426266'), (5, '428649'), (5, '427034')]
+    instruments = [(5, '258633'), (5, '426266'), (5, '428649'),(5,'428008')]
     subscription_code = marketfeed.Ticker
 
     feed = marketfeed.DhanFeed(client_id, access_token, instruments, subscription_code,
@@ -243,7 +237,7 @@ feed_thread.start()
 # Dash app setup
 app = dash.Dash(__name__)
 app.layout = html.Div([
-    html.H1("ATM Sum", style={'textAlign': 'center', 'color': '#4CAF50'}),
+    html.H1("Commodity ATM Data"),
     dash_table.DataTable(
         id='atm-table',
         columns=[
@@ -254,31 +248,14 @@ app.layout = html.Div([
             {'name': 'Sum', 'id': 'sum'}
         ],
         style_table={'overflowX': 'auto'},
-        style_cell={'textAlign': 'center', 'fontFamily': 'Arial, sans-serif', 'fontSize': '16px'},
-        style_data_conditional=[
-            {
-                'if': {'row_index': 'odd'},
-                'backgroundColor': '#f9f9f9'
-            },
-            {
-                'if': {'row_index': 'even'},
-                'backgroundColor': '#ffffff'
-            }
-        ],
-        style_header={
-            'backgroundColor': '#4CAF50',
-            'color': 'white',
-            'fontWeight': 'bold',
-            'fontSize': '18px'
-        },
-        style_as_list_view=True
+        style_cell={'textAlign': 'center'}
     ),
     dcc.Interval(
         id='interval-component',
         interval=1*1000,  # Update every second
         n_intervals=0
     )
-], style={'maxWidth': '1000px', 'margin': '0 auto'})
+])
 
 @app.callback(
     Output('atm-table', 'data'),
