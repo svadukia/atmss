@@ -106,7 +106,9 @@ def get_atm_silver(price):
 # Function to get token list from CSV
 def get_token(strikes):
     try:
-        sym_df = pd.read_csv('D:/Dhan/api-scrip-master.csv', low_memory=False)
+        url = 'https://raw.githubusercontent.com/svadukia/atmss/main/api-scrip-master.csv'
+
+        sym_df = pd.read_csv(url, low_memory=False)
         filtered_df = sym_df[sym_df['SEM_CUSTOM_SYMBOL'].isin(strikes) & (sym_df['SEM_EXM_EXCH_ID'] == 'MCX')]
         tokens = filtered_df['SEM_SMST_SECURITY_ID'].tolist()
         ng_for = [(5, str(token)) for token in tokens]
@@ -213,7 +215,7 @@ async def connect_to_feed(feed):
 
 # Main function to run the feed
 async def main_feed():
-    access_token = read_access_token("D://Dhan/accesstoken.txt")
+    access_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkaGFuIiwicGFydG5lcklkIjoiIiwiZXhwIjoxNzIwNjg0NzU3LCJ0b2tlbkNvbnN1bWVyVHlwZSI6IlNFTEYiLCJ3ZWJob29rVXJsIjoiIiwiZGhhbkNsaWVudElkIjoiMTEwMzAyNzcxNSJ9.IaPsFUjWY5JWG_S9KLv3KvZMgXtUwiEd4YstrTb3uy3W77qvkM5chIR0QcMuG2vTZ7aQ0n5cb6ASG_VC8gB08Q'
     if not access_token:
         logging.error("Failed to read access token. Exiting.")
         return
